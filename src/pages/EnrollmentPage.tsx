@@ -81,6 +81,7 @@ export default function EnrollmentPage() {
         </div>
 
         <RegisterDialog
+          student={student}
           onRegister={handleRegister}
         />
       </div>
