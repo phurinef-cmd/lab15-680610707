@@ -74,5 +74,5 @@ export const currentStudent = students.find(
 export const currentUser = {
   nickname: "Ef",
   role: "STUDENT" as "STUDENT" | "ADMIN",
-  avatar: "/profile.svg",
+  avatar: "public/profile.jpg",
 };
