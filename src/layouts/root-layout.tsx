@@ -1,5 +1,4 @@
 import { Outlet } from "react-router";
-
 import { AppSidebar } from "@/components/app-sidebar";
 import { ModeToggle } from "@/components/mode-toggle";
 import { Separator } from "@/components/ui/separator";
@@ -13,18 +12,27 @@ export default function RootLayout() {
   return (
     <SidebarProvider>
       <AppSidebar />
-      <SidebarInset>
+
+      <SidebarInset className="flex min-h-screen flex-col">
         <header className="flex h-14 items-center justify-between gap-2 border-b px-4">
           <div className="flex items-center gap-2">
             <SidebarTrigger />
             <Separator orientation="vertical" className="h-4" />
-            <span className="text-sm font-medium">ระบบลงทะเบียนเรียน</span>
+            <span className="text-sm font-medium">
+              ระบบลงทะเบียนเรียน
+            </span>
           </div>
+
           <ModeToggle />
         </header>
+
         <main className="flex-1 p-4">
           <Outlet />
         </main>
+
+        <footer className="border-t px-4 py-3 text-center text-sm text-muted-foreground">
+          จัดทำโดย ภูรินท์ แบนสุภา รหัสนักศึกษา 680610707
+        </footer>
       </SidebarInset>
     </SidebarProvider>
   );

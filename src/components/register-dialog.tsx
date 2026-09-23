@@ -1,5 +1,8 @@
 import { useState } from "react";
-import { Button } from "@/components/ui/button";
+import type { FormEvent } from "react";
+import { Select } from "@base-ui/react/select";
+import { UserPlus } from "lucide-react";
+
 import {
   Dialog,
   DialogContent,
@@ -9,51 +12,168 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Button } from "@/components/ui/button";
 
-export function RegisterDialog() {
-  const [open, setOpen] = useState(false); // true = แสดง Dialog
+import type { Course } from "@/lib/types";
+import { courses, currentStudent } from "@/lib/mock-data";
+
+type RegisterDialogProps = {
+  onRegister: (courseId: string, time: string) => void;
+};
+
+export function RegisterDialog({
+  onRegister,
+}: RegisterDialogProps) {
+  const [open, setOpen] = useState(false);
   const [courseId, setCourseId] = useState("");
 
-  function handleSubmit(e: React.SubmitEvent<HTMLFormElement>) {
-    e.preventDefault(); // ไม่ให้หน้าเว็บ reload
-    setCourseId(""); // เคลียร์ฟอร์ม
-    setOpen(false); // ปิด Dialog
+  const [enrolledAt, setEnrolledAt] = useState(
+    new Date().toTimeString().slice(0, 5),
+  );
+
+  const availableCourses = courses.filter(
+    (course) => !currentStudent.courses?.includes(course.courseId),
+  );
+
+  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+
+    if (!courseId) {
+      return;
+    }
+
+    const now = new Date();
+    const [hours, minutes] = enrolledAt.split(":");
+
+    now.setHours(Number(hours));
+    now.setMinutes(Number(minutes));
+    now.setSeconds(0);
+    now.setMilliseconds(0);
+
+    onRegister(courseId, now.toISOString());
+
+    setCourseId("");
+    setOpen(false);
   }
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      {/* ปุ่มที่กดแล้วเปิด Dialog */}
+    <Dialog
+      open={open}
+      onOpenChange={(value) => {
+        setOpen(value);
+
+        if (!value) {
+          setCourseId("");
+        }
+      }}
+    >
       <DialogTrigger>
-        <Button>ลงทะเบียน</Button>
+        <Button>
+          <UserPlus />
+          ลงทะเบียน
+        </Button>
       </DialogTrigger>
 
-      {/* ฟอร์มที่แสดงออกมาเมื่อกดปุ่ม */}
       <DialogContent>
         <form onSubmit={handleSubmit} className="space-y-4">
           <DialogHeader>
             <DialogTitle>ลงทะเบียนรายวิชา</DialogTitle>
-            <DialogDescription>กรอกข้อมูลเพื่อลงทะเบียน</DialogDescription>
+
+            <DialogDescription>
+              กรอกข้อมูลเพื่อลงทะเบียน
+            </DialogDescription>
           </DialogHeader>
 
           <div className="space-y-2">
-            <Label htmlFor="studentId">รหัสนักศึกษา</Label>
-            <Input id="studentId" placeholder="เช่น 650610002" />
+            <Label>วิชา</Label>
+
+            <Select.Root
+              value={courseId}
+              onValueChange={(value) => {
+                setCourseId(value ?? "");
+              }}
+            >
+              <Select.Trigger className="flex h-9 w-full items-center justify-between rounded-md border bg-background px-3 text-sm shadow-xs outline-none">
+                <Select.Value placeholder="เลือกวิชา" />
+                <Select.Icon>⌄</Select.Icon>
+              </Select.Trigger>
+
+              <Select.Portal>
+                <Select.Positioner
+                  sideOffset={4}
+                  alignItemWithTrigger={false}
+                  className="z-[100]"
+                >
+                  <Select.Popup className="min-w-[var(--anchor-width)] rounded-md border bg-popover p-1 text-popover-foreground shadow-md">
+                    <Select.List>
+                      {availableCourses.map((course: Course) => (
+                        <Select.Item
+                          key={course.courseId}
+                          value={course.courseId}
+                          className="cursor-pointer rounded-sm px-3 py-2 text-sm outline-none data-highlighted:bg-accent data-highlighted:text-accent-foreground"
+                        >
+                          <Select.ItemText>
+                            {course.courseId} – {course.courseTitle}
+                          </Select.ItemText>
+                        </Select.Item>
+                      ))}
+                    </Select.List>
+                  </Select.Popup>
+                </Select.Positioner>
+              </Select.Portal>
+            </Select.Root>
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="fullName">ชื่อ-นามสกุล</Label>
-            <Input id="fullName" placeholder="เช่น Cillian Murphy" />
+            <Label htmlFor="enrolledAt">
+              เลือกเวลา
+            </Label>
+
+            <Input
+              id="enrolledAt"
+              type="time"
+              value={enrolledAt}
+              onChange={(event) =>
+                setEnrolledAt(event.target.value)
+              }
+            />
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="courseId">รหัสวิชา</Label>
-            <Input id="courseId" placeholder="เช่น 261207" />
+            <Label htmlFor="studentName">
+              ชื่อ นศ.
+            </Label>
+
+            <Input
+              id="studentName"
+              value={`${currentStudent.firstName} ${currentStudent.lastName}`}
+              readOnly
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="program">
+              โปรแกรม
+            </Label>
+
+            <Input
+              id="program"
+              value={currentStudent.program}
+              readOnly
+            />
           </div>
 
           <DialogFooter>
-            <Button type="submit">ยืนยัน</Button>
+            <Button
+              type="submit"
+              disabled={!courseId}
+            >
+              <UserPlus />
+              ลงทะเบียน
+            </Button>
           </DialogFooter>
         </form>
       </DialogContent>
